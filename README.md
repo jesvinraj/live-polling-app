@@ -8,10 +8,9 @@ Users can create polls with custom options and an optional expiration time, shar
 
 ## Live Links
 
-- **Live Application (Frontend)**: `https://<your-frontend-subdomain>.vercel.app` *(update after deployment)*
-- **Backend API Endpoint**: `https://<your-backend-subdomain>.railway.app/api/v1` *(update after deployment)*
-- **Realtime WebSocket Endpoint**: `wss://<your-backend-subdomain>.railway.app/ws` *(update after deployment)*
-
+- **Live Application (Frontend)**: https://live-polling-app-amber.vercel.app
+- **Backend API Endpoint**: https://live-polling-app-i53z.onrender.com/api/v1
+- **Realtime WebSocket Endpoint**: wss://live-polling-app-i53z.onrender.com/ws
 ---
 
 ## Tech Stack Overview
