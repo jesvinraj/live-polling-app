@@ -128,29 +128,30 @@ Open `http://localhost:5173` in your browser.
    `rediss://default:<password>@<endpoint>:6379`
    *(Upstash free tier provides 10,000 commands/day; idle consumption for this app is under 2,000 commands/day).*
 
-### 3. Backend Deployment: Railway or Fly.io (Recommended)
+### 3. Backend Deployment: Railway or Render
 1. Push your repository to GitHub.
-2. In Railway / Fly.io / Render, create a new Web Service pointing to the `/backend` directory.
+2. In Railway or Render, create a new Web Service pointing to the `/backend` directory.
 3. Set the build command to: `go build -o server ./cmd/server` and start command to `./server`.
-4. Add the following environment variables:
+4. Set the **Health Check Path** on Render to: `/healthz` *(this lightweight probe returns 200 OK without touching MongoDB or Redis, consuming 0 commands from your free database quotas)*.
+5. Add the following environment variables:
    - `PORT`: `8080` (or host assigned port)
    - `GIN_MODE`: `release`
    - `MONGO_URI`: `<your_mongodb_atlas_connection_string>`
    - `MONGO_DB_NAME`: `polling_app`
    - `REDIS_ADDR`: `<your_upstash_or_redis_cloud_url>`
-   - `JWT_SECRET`: `<generated_random_64_character_string>`
+   - `JWT_SECRET`: `<generated_random_64_character_string>` (must be at least 32 characters in release mode)
    - `JWT_EXPIRATION_HOURS`: `72`
    - `ALLOWED_ORIGINS`: `https://your-frontend.vercel.app`
    - `TRUSTED_PROXIES`: `127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`
-5. *Note for Render Free Tier*: If using Render free web services, set up a free monitor on [UptimeRobot](https://uptimerobot.com/) to ping `https://your-backend.onrender.com/api/v1/health` every 5 minutes so the free container never spins down.
+6. *Note for Render Free Tier*: If using Render free web services, set up a free monitor on [UptimeRobot](https://uptimerobot.com/) to ping `https://your-backend.onrender.com/healthz` every 5 minutes so the free container never spins down.
 
 ### 4. Frontend Deployment: Vercel or Netlify
 1. Connect your repository to [Vercel](https://vercel.com/) or [Netlify](https://www.netlify.com/).
 2. Set Root Directory to `frontend`.
 3. Set Build Command to `npm run build` and Output Directory to `dist`.
 4. Add the environment variables:
-   - `VITE_API_URL`: `https://your-backend.railway.app/api/v1`
-   - `VITE_WS_URL`: `wss://your-backend.railway.app/ws`
+   - `VITE_API_URL`: `https://your-backend.railway.app/api/v1` (or your Render backend URL)
+   - `VITE_WS_URL`: `wss://your-backend.railway.app/ws` (or your Render backend URL)
 5. Deploy. The included `vercel.json` and `_redirects` files ensure direct links like `/polls/:id` route correctly.
 
 ---

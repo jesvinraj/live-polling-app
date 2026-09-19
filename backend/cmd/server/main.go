@@ -60,6 +60,7 @@ func main() {
 	pollHandler := handlers.NewPollHandler(pollService, authService, wsHub)
 	voteHandler := handlers.NewVoteHandler(voteService)
 	wsHandler := handlers.NewWSHandler(wsHub, cfg)
+	healthHandler := handlers.NewHealthHandler(mongoInstance, redisInstance)
 
 	// Router Setup
 	r := gin.New()
@@ -69,20 +70,12 @@ func main() {
 	r.Use(middleware.CORSMiddleware(cfg.AllowedOrigins))
 	r.Use(middleware.RequestSizeLimiter(32 * 1024)) // 32 KB request size limit
 
-	// Health Check Route
-	r.GET("/api/v1/health", func(c *gin.Context) {
-		redisStatus := "connected"
-		if redisInstance == nil || redisInstance.Client.Ping(c.Request.Context()).Err() != nil {
-			redisStatus = "disconnected"
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"status":   "healthy",
-			"database": "connected",
-			"redis":    redisStatus,
-			"clientIp": c.ClientIP(),
-			"time":     time.Now().UTC(),
-		})
-	})
+	// Lightweight Liveness Probe for Cloud Platforms (Render, Railway, Kubernetes)
+	r.GET("/healthz", healthHandler.Healthz)
+	r.GET("/health", healthHandler.Healthz)
+
+	// Detailed Readiness and Diagnostic Route (results cached for 60 seconds)
+	r.GET("/api/v1/health", healthHandler.DetailedHealth)
 
 	// Public WebSocket Route
 	r.GET("/ws/polls/:id", wsHandler.HandlePollWS)
